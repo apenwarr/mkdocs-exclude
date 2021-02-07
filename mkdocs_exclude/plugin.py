@@ -15,8 +15,6 @@ class ExcludeDecider:
 
     def is_include(self, file):
         if not self._is_include(file):
-            if file.endswith(".md"):
-                print("NO", self.include_globs)
             return False
         # Windows reports filenames as eg.  a\\b\\c instead of a/b/c.
         # To make the same globs/regexes match filenames on Windows and
