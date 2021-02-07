@@ -26,6 +26,13 @@ This implements what people were asking for in some mkdocs bugs, such as
            - "*.gz"
          regex:
            - '.*\.(tmp|bin|tar)$'
+         include-glob:
+           - include/this/path/*
+           - "*.png"
+           - "*.md"
+           - "assets/**" # the material theme requires this folder
+         include-regex:
+           - '.*\.(js|css)$'
    ```
 
 You can provide zero or more patterns of each type.  (If you don't provide
@@ -41,3 +48,8 @@ quoted.
 When writing regexes, it's best to use single quotes rather than double
 quotes, so that your regex backslash escapes are preserved correctly without
 having to be doubled up.
+
+## Exclude and Include
+
+It is possible to exclude and include. For example you could exclude `*` but include `*.md`.
+Include has higher priority over exclude.
