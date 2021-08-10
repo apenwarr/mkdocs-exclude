@@ -1,7 +1,7 @@
 import fnmatch
 import re
 import os
-import sys
+import subprocess
 import mkdocs
 import mkdocs.plugins
 import mkdocs.structure.files
@@ -12,6 +12,7 @@ class Exclude(mkdocs.plugins.BasePlugin):
     config_scheme = (
         ('glob', mkdocs.config.config_options.Type((str, list), default=None)),
         ('regex', mkdocs.config.config_options.Type((str, list), default=None)),
+        ('gitignore', mkdocs.config.config_options.Type((bool,), default=False)),
     )
 
     def on_files(self, files, config):
@@ -21,6 +22,7 @@ class Exclude(mkdocs.plugins.BasePlugin):
         regexes = self.config['regex'] or []
         if not isinstance(regexes, list):
             regexes = [regexes]
+        gitignore = self.config['gitignore']
         out = []
         def include(name):
             for g in globs:
@@ -33,6 +35,9 @@ class Exclude(mkdocs.plugins.BasePlugin):
         for i in files:
             name = i.src_path
             if not include(name):
+                continue
+            abs_path = i.abs_src_path
+            if gitignore and git_ignores_path(abs_path):
                 continue
 
             # Windows reports filenames as eg.  a\\b\\c instead of a/b/c.
@@ -50,3 +55,26 @@ class Exclude(mkdocs.plugins.BasePlugin):
                     continue
             out.append(i)
         return mkdocs.structure.files.Files(out)
+
+def git_ignores_path(abs_path):
+    r"""
+    This is adapted from `pytest-gitignore
+    <https://github.com/tgs/pytest-gitignore/blob/7dc7087f16dbc467435e08f7faeac64d7ee0f0a1/pytest_gitignore.py#L18-L35>`_,
+    which, as of the adaptation, was `signaled as being in the public domain
+    <https://github.com/tgs/pytest-gitignore/blob/7dc7087f16dbc467435e08f7faeac64d7ee0f0a1/LICENSE>`_.
+    """
+    if os.path.basename(abs_path) == '.git':  # Ignore .git directory
+        return True
+    cmd = ['git', 'check-ignore', abs_path]
+    result = subprocess.run(cmd, stdin=subprocess.DEVNULL, capture_output=True)
+    status = result.returncode
+    # Possible return values: (via git help check-ignore)
+    #    0: Yes, the file is ignored
+    #    1: No, the file isn't ignored
+    #  128: Fatal error, git can't tell us whether to ignore
+    #
+    # The latter happens a lot with python virtualenvs, since they have
+    # symlinks and git gives up when you try to follow one.  But maybe you have
+    # a test directory that you include with a symlink, who knows?  So we treat
+    # the file as not-ignored.
+    return status == 0
