@@ -1,7 +1,6 @@
 import fnmatch
 import re
 import os
-import sys
 import mkdocs
 import mkdocs.plugins
 import mkdocs.structure.files
