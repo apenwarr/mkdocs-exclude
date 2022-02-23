@@ -4,13 +4,14 @@ import os
 import mkdocs
 import mkdocs.plugins
 import mkdocs.structure.files
+from mkdocs.config.config_options import Type
 
 class Exclude(mkdocs.plugins.BasePlugin):
     """A mkdocs plugin that removes all matching files from the input list."""
 
     config_scheme = (
-        ('glob', mkdocs.config.config_options.Type((str, list), default=None)),
-        ('regex', mkdocs.config.config_options.Type((str, list), default=None)),
+        ('glob', Type((str, list), default=None)),
+        ('regex', Type((str, list), default=None)),
     )
 
     def on_files(self, files, config):
