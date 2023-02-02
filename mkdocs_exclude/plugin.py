@@ -14,9 +14,13 @@ class Exclude(mkdocs.plugins.BasePlugin):
     config_scheme = (
         ('glob', mkdocs.config.config_options.Type((str, list), default=None)),
         ('regex', mkdocs.config.config_options.Type((str, list), default=None)),
+        ('nav-exclude', mkdocs.config.config_options.Type(bool, default=False))
     )
 
     def on_config(self, config):
+        if self.config['nav-exclude'] is False:
+            return config
+
         globs, regexes = self.__get_exclude_config()
         new_nav, _ = self.__filter_nav(config['nav'], globs, regexes)
         config['nav'] = new_nav
